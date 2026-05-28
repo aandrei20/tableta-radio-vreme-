@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta http-equiv="Cache-Control" content="no-store">
+<title>Vremea & Radio</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #6dd5ed 100%);
+    color: #fff;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+  }
+  body {
+    display: flex;
+    flex-direction: column;
+  }
+  header {
+    padding: 8px 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(0,0,0,0.18);
+    flex-shrink: 0;
+  }
+  header h1 {
+    font-size: 16px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+  }
+  #clock {
+    font-size: 18px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+  main {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 8px;
+    padding: 8px;
+    min-height: 0;
+  }
+  .card {
+    background: rgba(255,255,255,0.10);
+    backdrop-filter: blur(6px);
+    border: 1px solid rgba(255,255,255,0.18);
+    border-radius: 14px;
+    padding: 10px 14px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    overflow: hidden;
+  }
+  .card-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+  .city {
+    font-size: 17px;
+    font-weight: 600;
+    line-height: 1.1;
+  }
+  .region {
+    font-size: 11px;
+    opacity: 0.75;
+    margin-top: 2px;
+  }
+  .icon {
+    font-size: 38px;
+    line-height: 1;
+  }
+  .temp {
+    font-size: 46px;
+    font-weight: 300;
+    line-height: 1;
+    margin: 4px 0;
+  }
+  .temp sup { font-size: 22px; opacity: 0.7; }
+  .desc {
+    font-size: 13px;
+    opacity: 0.9;
+    text-transform: capitalize;
+    margin-bottom: 4px;
+  }
+  .meta {
+    display: flex;
+    gap: 12px;
+    font-size: 11px;
+    opacity: 0.85;
+    flex-wrap: wrap;
+  }
+  .meta span::before {
+    margin-right: 3px;
+  }
+  .wind::before { content: "💨"; }
+  .humidity::before { content: "💧"; }
+  .feels::before { content: "🌡"; }
+  .minmax::before { content: "↕"; }
+  .loading { opacity: 0.6; }
+  .error {
+    color: #ffb4b4;
+    font-size: 12px;
+  }
+  footer {
+    flex-shrink: 0;
+    background: rgba(0,0,0,0.30);
+    padding: 8px 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  #playBtn {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    border: none;
+    background: #ff4757;
+    color: #fff;
+    font-size: 26px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s, transform 0.1s;
+    flex-shrink: 0;
+  }
+  #playBtn:active { transform: scale(0.94); }
+  #playBtn.playing { background: #2ed573; }
+  .radio-info {
+    flex: 1;
+    min-width: 0;
+  }
+  .radio-name {
+    font-size: 15px;
+    font-weight: 600;
+  }
+  .radio-status {
+    font-size: 11px;
+    opacity: 0.75;
+  }
+  .station-select {
+    background: rgba(255,255,255,0.15);
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.25);
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-size: 13px;
+    outline: none;
+  }
+  .station-select option { background: #1e3c72; color: #fff; }
+  .last-update {
+    font-size: 10px;
+    opacity: 0.55;
+    margin-top: 2px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🌤 Vremea în timp real</h1>
+  <div id="clock">--:--</div>
+</header>
+
+<main id="grid">
+  <div class="card" data-lat="45.6167" data-lon="25.7000" data-city="Săcele" data-region="Brașov, România">
+    <div class="card-head"><div><div class="city">Săcele</div><div class="region">Brașov, România</div></div></div>
+    <div class="loading">Se încarcă...</div>
+  </div>
+  <div class="card" data-lat="45.2500" data-lon="26.0500" data-city="Cerașu" data-region="Prahova, România">
+    <div class="card-head"><div><div class="city">Cerașu</div><div class="region">Prahova, România</div></div></div>
+    <div class="loading">Se încarcă...</div>
+  </div>
+  <div class="card" data-lat="46.2197" data-lon="24.7928" data-city="Sighișoara" data-region="Mureș, România">
+    <div class="card-head"><div><div class="city">Sighișoara</div><div class="region">Mureș, România</div></div></div>
+    <div class="loading">Se încarcă...</div>
+  </div>
+  <div class="card" data-lat="56.8330" data-lon="14.3000" data-city="Ågunnaryd" data-region="Suedia">
+    <div class="card-head"><div><div class="city">Ågunnaryd</div><div class="region">Suedia</div></div></div>
+    <div class="loading">Se încarcă...</div>
+  </div>
+</main>
+
+<footer>
+  <button id="playBtn" aria-label="Play/Pause">▶</button>
+  <div class="radio-info">
+    <div class="radio-name">📻 Radio România Actualități</div>
+    <div class="radio-status" id="status">Apasă play pentru a porni</div>
+  </div>
+  <button id="refreshBtn" class="station-select" aria-label="Reîmprospătează vremea">🔄 Vremea</button>
+</footer>
+
+<audio id="player" preload="none" crossorigin="anonymous"></audio>
+
+<script>
+/* ========= CEAS ========= */
+function updateClock() {
+  const now = new Date();
+  const h = String(now.getHours()).padStart(2, '0');
+  const m = String(now.getMinutes()).padStart(2, '0');
+  const s = String(now.getSeconds()).padStart(2, '0');
+  document.getElementById('clock').textContent = `${h}:${m}:${s}`;
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+/* ========= VREMEA ========= */
+const WMO = {
+  0: ["Senin", "☀️"],
+  1: ["Aproape senin", "🌤"],
+  2: ["Parțial înnorat", "⛅"],
+  3: ["Înnorat", "☁️"],
+  45: ["Ceață", "🌫"],
+  48: ["Ceață cu chiciură", "🌫"],
+  51: ["Burniță ușoară", "🌦"],
+  53: ["Burniță", "🌦"],
+  55: ["Burniță densă", "🌧"],
+  56: ["Burniță înghețată", "🌧"],
+  57: ["Burniță înghețată densă", "🌧"],
+  61: ["Ploaie ușoară", "🌦"],
+  63: ["Ploaie", "🌧"],
+  65: ["Ploaie torențială", "🌧"],
+  66: ["Ploaie înghețată", "🌧"],
+  67: ["Ploaie înghețată puternică", "🌧"],
+  71: ["Ninsoare ușoară", "🌨"],
+  73: ["Ninsoare", "🌨"],
+  75: ["Ninsoare abundentă", "❄️"],
+  77: ["Granule de zăpadă", "❄️"],
+  80: ["Averse ușoare", "🌦"],
+  81: ["Averse", "🌧"],
+  82: ["Averse puternice", "⛈"],
+  85: ["Averse de zăpadă", "🌨"],
+  86: ["Averse puternice de zăpadă", "❄️"],
+  95: ["Furtună", "⛈"],
+  96: ["Furtună cu grindină", "⛈"],
+  99: ["Furtună puternică cu grindină", "⛈"]
+};
+
+function describe(code) {
+  return WMO[code] || ["—", "🌡"];
+}
+
+async function fetchWeather(card) {
+  const lat = card.dataset.lat;
+  const lon = card.dataset.lon;
+  const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}`
+    + `&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m`
+    + `&daily=temperature_2m_max,temperature_2m_min&timezone=auto`;
+
+  try {
+    const res = await fetch(url, { cache: 'no-store' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    renderCard(card, data);
+  } catch (err) {
+    card.innerHTML = `
+      <div class="card-head">
+        <div>
+          <div class="city">${card.dataset.city}</div>
+          <div class="region">${card.dataset.region}</div>
+        </div>
+      </div>
+      <div class="error">Eroare la încărcarea vremii<br><small>${err.message}</small></div>
+    `;
+  }
+}
+
+function renderCard(card, data) {
+  const c = data.current;
+  const d = data.daily;
+  const [desc, icon] = describe(c.weather_code);
+  const updated = new Date().toLocaleTimeString('ro-RO', { hour: '2-digit', minute: '2-digit' });
+
+  card.innerHTML = `
+    <div class="card-head">
+      <div>
+        <div class="city">${card.dataset.city}</div>
+        <div class="region">${card.dataset.region}</div>
+      </div>
+      <div class="icon">${icon}</div>
+    </div>
+    <div>
+      <div class="temp">${Math.round(c.temperature_2m)}<sup>°C</sup></div>
+      <div class="desc">${desc}</div>
+    </div>
+    <div>
+      <div class="meta">
+        <span class="feels">Resimțit ${Math.round(c.apparent_temperature)}°</span>
+        <span class="minmax">${Math.round(d.temperature_2m_min[0])}° / ${Math.round(d.temperature_2m_max[0])}°</span>
+        <span class="humidity">${c.relative_humidity_2m}%</span>
+        <span class="wind">${Math.round(c.wind_speed_10m)} km/h</span>
+      </div>
+      <div class="last-update">Actualizat ${updated}</div>
+    </div>
+  `;
+}
+
+function refreshAll() {
+  document.querySelectorAll('.card').forEach(fetchWeather);
+}
+
+refreshAll();
+setInterval(refreshAll, 10 * 60 * 1000); // la 10 minute
+
+/* ========= RADIO ========= */
+const RRA_STREAMS = [
+  'https://stream2.srr.ro:8443/Actualitati.mp3',
+  'https://stream-rra.srr.ro/Actualitati.mp3',
+  'http://89.238.227.6:8000/'
+];
+let streamIndex = 0;
+
+const player = document.getElementById('player');
+const playBtn = document.getElementById('playBtn');
+const status = document.getElementById('status');
+
+function loadStream() {
+  player.src = RRA_STREAMS[streamIndex];
+}
+loadStream();
+
+playBtn.addEventListener('click', () => {
+  if (player.paused) {
+    status.textContent = 'Se conectează...';
+    player.play().then(() => {
+      playBtn.textContent = '⏸';
+      playBtn.classList.add('playing');
+      status.textContent = 'Se redă în direct';
+    }).catch(err => {
+      status.textContent = 'Eroare: ' + err.message;
+    });
+  } else {
+    player.pause();
+    playBtn.textContent = '▶';
+    playBtn.classList.remove('playing');
+    status.textContent = 'Oprit';
+  }
+});
+
+player.addEventListener('error', () => {
+  streamIndex++;
+  if (streamIndex < RRA_STREAMS.length) {
+    status.textContent = 'Încerc alt server...';
+    loadStream();
+    player.play().catch(() => {});
+  } else {
+    streamIndex = 0;
+    loadStream();
+    status.textContent = 'Streamul nu este disponibil acum.';
+    playBtn.textContent = '▶';
+    playBtn.classList.remove('playing');
+  }
+});
+
+document.getElementById('refreshBtn').addEventListener('click', refreshAll);
+
+/* ========= MENȚINE ECRANUL ACTIV ========= */
+if ('wakeLock' in navigator) {
+  let wakeLock = null;
+  const requestWakeLock = async () => {
+    try { wakeLock = await navigator.wakeLock.request('screen'); } catch (e) {}
+  };
+  requestWakeLock();
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') requestWakeLock();
+  });
+}
+</script>
+</body>
+</html>
