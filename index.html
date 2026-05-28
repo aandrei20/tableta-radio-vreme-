@@ -4,6 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <meta http-equiv="Cache-Control" content="no-store">
+<meta name="theme-color" content="#0f2027">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Vremea">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<link rel="apple-touch-icon" href="icon.svg">
 <title>Vremea & Radio</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -508,6 +516,13 @@ player.addEventListener('error', () => {
 });
 
 document.getElementById('refreshBtn').addEventListener('click', refreshAll);
+
+/* ========= SERVICE WORKER (PWA INSTALABILA) ========= */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  });
+}
 
 /* ========= WAKE LOCK ========= */
 if ('wakeLock' in navigator) {
